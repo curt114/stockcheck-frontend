@@ -286,7 +286,7 @@ function Search({ placeholder }) {
               <li
                 key={index}
                 onClick={() => handleAddStock(stock)}
-                className="grid grid-cols-4 rounded border-b border-slate-700 px-3  py-2 hover:bg-gray-700"
+                className="grid cursor-pointer grid-cols-4 rounded border-b border-slate-700  px-3 py-2 hover:bg-gray-700"
               >
                 <span className="col-span-3 text-sm">{stock.description}</span>
                 <span className="col-span-1 self-end justify-self-end text-xs font-bold">
