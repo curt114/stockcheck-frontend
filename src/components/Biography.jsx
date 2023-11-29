@@ -3,6 +3,8 @@
 // DATE: 11/21/2023
 // =========================================================
 
+import { Link } from 'react-router-dom';
+
 // =========================================================
 // BIOGRAPHY PARENT COMPONENT
 // =========================================================
@@ -31,7 +33,11 @@ function Picture({ image }) {
         >
           <div className="flex h-56 w-56 items-center justify-center bg-white">
             <div className="h-[220px] w-[220px] border-2 border-dashed border-violet-500">
-              <img className="h-full w-full px-2 pt-2" src={image} />
+              <img
+                className="h-full w-full px-2 pt-2"
+                src={image}
+                alt="Profile Picture"
+              />
             </div>
           </div>
         </div>
@@ -83,18 +89,22 @@ function Description({ children }) {
 function Links() {
   return (
     <div className="mt-3 flex justify-end gap-2 md:max-w-prose">
-      <a
-        href="#"
+      <Link
+        to="https://www.linkedin.com/in/curtlebensorger"
+        target="_blank"
+        rel="noopener noreferrer"
         className="rounded px-4 py-2 text-slate-600 ring-2 ring-violet-400 transition-colors duration-300 hover:bg-violet-400 hover:text-violet-50"
       >
         LinkedIn
-      </a>
-      <a
-        href="#"
+      </Link>
+      <Link
+        to="https://github.com/curt114/stockcheck"
+        target="_blank"
+        rel="noopener noreferrer"
         className="rounded bg-violet-400 px-4 py-2 text-violet-50 ring-2 ring-violet-400 transition-colors duration-300 hover:bg-transparent hover:text-slate-600"
       >
         GitHub
-      </a>
+      </Link>
     </div>
   );
 }
