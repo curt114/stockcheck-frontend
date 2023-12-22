@@ -4,14 +4,13 @@
 // =======================================================
 
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import { StockListProvider } from './context/StockListContext';
-import { WebsocketProvider } from './context/WebsocketContext';
 import Objectives from './pages/Objectives';
 import About from './pages/About';
 import RootLayout from './layouts/RootLayout';
 import Dashboard from './pages/Dashboard';
 import { StockTradesProvider } from './context/StockTradesContext';
 import NotFound from './pages/NotFound';
+import { StockWatchProvider } from './context/StockWatchContext';
 
 // Routes to different pages in the application
 const router = createBrowserRouter([
@@ -29,13 +28,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <WebsocketProvider>
+    <StockWatchProvider>
       <StockTradesProvider>
-        <StockListProvider>
-          <RouterProvider router={router} />
-        </StockListProvider>
+        <RouterProvider router={router} />
       </StockTradesProvider>
-    </WebsocketProvider>
+    </StockWatchProvider>
   );
 }
 

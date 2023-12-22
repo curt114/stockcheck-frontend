@@ -5,16 +5,17 @@
 
 import { useContext } from 'react';
 import Card from '../components/Card';
-import { StockTradesContext } from '../context/StockTradesContext';
+import { StockWatchContext } from '../context/StockWatchContext';
 
 export default function Dashboard() {
-  const { stocks } = useContext(StockTradesContext);
+  const { stocksWatch } = useContext(StockWatchContext);
+  const timestamp = Date.now();
 
-  const cards = stocks.map((stock) => (
-    <Card stock={stock} key={stock.symbol}>
+  const cards = stocksWatch.map((stockWatch) => (
+    <Card stockWatch={stockWatch} timestamp={timestamp} key={stockWatch}>
       <Card.Header>
         <Card.StockArrow />
-        <Card.TimeStamp />
+        <Card.Timestamp />
         <Card.Close />
       </Card.Header>
       <Card.Underline />

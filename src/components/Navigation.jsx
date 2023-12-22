@@ -4,10 +4,8 @@
 // =======================================================
 
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { StockListContext } from '../context/StockListContext';
-import { WebsocketContext } from '../context/WebsocketContext';
 import { NavLink } from 'react-router-dom';
-import { StockTradesContext } from '../context/StockTradesContext';
+import { StockWatchContext } from '../context/StockWatchContext';
 
 // Parent context
 const NavContext = createContext();
@@ -128,15 +126,37 @@ function Menu({ children }) {
 // =========================================================
 
 function Search({ placeholder }) {
-  const { stockList, error, handleRefreshData } = useContext(StockListContext);
-  const { setStocks } = useContext(StockTradesContext);
-  const { stocksRef, socketRef } = useContext(WebsocketContext);
-  const [data, setData] = useState([]);
+  const [list, setList] = useState([]);
   const [showMenu, setShowMenu] = useState(false);
+  const { stocksWatch, dispatch } = useContext(StockWatchContext);
   const menuRef = useRef(null);
   const inputRef = useRef(null);
   const inputFocusedRef = useRef(false);
+  const stockListRef = useRef([]);
   const maxIterations = 100;
+
+  const fetchData = async (symbol) => {
+    const response = await fetch(`/api/stocks/watch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ symbol: symbol }),
+    });
+    if (!response.ok) throw new Error('Cannot post stock data');
+    const result = await response.json();
+    console.log(result);
+  };
+
+  const handleStockClicked = (symbol) => {
+    const found = stocksWatch.find((stock) => stock === symbol);
+    dispatch({ type: 'STOCK_ADD', payload: symbol });
+    if (!found) {
+      fetchData(symbol);
+    }
+    setShowMenu(false);
+    inputRef.current.value = '';
+  };
 
   const handleClickOutside = (event) => {
     if (
@@ -148,18 +168,10 @@ function Search({ placeholder }) {
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
-
   function handleInputChange(e) {
     const value = e.target.value.split('');
     const userInput = value.map((letter) => letter.toUpperCase()).join('');
-    const result = stockList.filter(
+    const result = stockListRef.current.filter(
       (stock) =>
         stock.displaySymbol.startsWith(userInput) ||
         stock.description.startsWith(userInput),
@@ -168,7 +180,7 @@ function Search({ placeholder }) {
     result.length > 0 && value.length > 0
       ? setShowMenu(true)
       : setShowMenu(false);
-    setData(result);
+    setList(result);
   }
 
   function handleInputOnFocus(e) {
@@ -184,90 +196,53 @@ function Search({ placeholder }) {
     inputFocusedRef.current = false;
   }
 
-  function handleAddStock(stock) {
-    const findStock = stocksRef.current.find(
-      (item) => item.symbol === stock.displaySymbol,
-    );
-
-    if (findStock === undefined) {
-      stocksRef.current.push({
-        symbol: stock.displaySymbol,
-        price: 0,
-        timeStamp: Date.now(),
-        isUp: true,
-        received: false,
-        isActive: true,
-      });
-    } else {
-      findStock.isActive = true;
-    }
-
-    setStocks([...stocksRef.current]);
-
-    socketRef.current.send(
-      JSON.stringify({ type: 'subscribe', symbol: stock.displaySymbol }),
-    );
-
-    inputRef.current.value = '';
-    setShowMenu(false);
-  }
-
   // Heroicons
   const searchIcon =
     'M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z';
-  const refreshIcon =
-    'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99';
+  // const refreshIcon =
+  //   'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch('/api/stocks/us');
+      if (!response.ok) throw new Error('Cannot fetch stock data');
+      const result = await response.json();
+      if (result) stockListRef.current = result;
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="relative flex flex-col">
       <div className="flex rounded-full border-2 border-gray-800 text-gray-500 md:col-start-1 md:col-end-2 md:w-10/12 md:justify-self-start lg:w-full">
-        {error ? (
-          <button
-            onClick={handleRefreshData}
-            className="rounded-l-full bg-slate-300 p-2"
+        <label
+          htmlFor="mySearch"
+          className={'rounded-l-full bg-white px-2 py-2'}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-6 w-6"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d={refreshIcon}
-              />
-            </svg>
-          </button>
-        ) : (
-          <label
-            htmlFor="mySearch"
-            className={'rounded-l-full bg-white px-2 py-2'}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d={searchIcon}
-              />
-            </svg>
-          </label>
-        )}
+            <path strokeLinecap="round" strokeLinejoin="round" d={searchIcon} />
+          </svg>
+        </label>
 
         <input
           type="text"
           id="mySearch"
           placeholder={placeholder}
-          disabled={error ? true : false}
           onFocus={handleInputOnFocus}
           onBlur={handleInputOnBlur}
           onChange={handleInputChange}
@@ -282,10 +257,10 @@ function Search({ placeholder }) {
           className="absolute top-12 max-h-52 w-full overflow-y-scroll rounded border border-slate-700 bg-slate-800 text-slate-100   scrollbar scrollbar-track-slate-800 scrollbar-thumb-violet-500 md:max-h-72"
         >
           <ul>
-            {data.slice(0, maxIterations).map((stock, index) => (
+            {list.slice(0, maxIterations).map((stock, index) => (
               <li
                 key={index}
-                onClick={() => handleAddStock(stock)}
+                onClick={() => handleStockClicked(stock.displaySymbol)}
                 className="grid cursor-pointer grid-cols-4 rounded border-b border-slate-700  px-3 py-2 hover:bg-gray-700"
               >
                 <span className="col-span-3 text-sm">{stock.description}</span>

@@ -5,8 +5,7 @@
 
 import { Outlet } from 'react-router-dom';
 import Navigation from '../components/Navigation';
-import { useContext, useState } from 'react';
-import { StockListContext } from '../context/StockListContext';
+import { useState } from 'react';
 
 // Heroicon StockCheck logo
 const logoIcon =
@@ -21,12 +20,11 @@ const categories = [
 
 // Layout for the StockCheck application
 export default function RootLayout() {
-  const { error } = useContext(StockListContext);
   const [activeTab, setActiveTab] = useState(
     categories.length > 0 ? categories[categories.length - 1].name : '',
   );
 
-  const placeholder = error ? 'Unable to load stock data.' : 'Stock Search...';
+  const placeholder = 'Stock Search...';
 
   function handleActiveTab(name) {
     setActiveTab(name);
@@ -40,12 +38,9 @@ export default function RootLayout() {
         </Navigation.Logo>
         <Navigation.ToggleMenuIcon />
         <Navigation.Menu>
-          {activeTab === 'Dashboard' &&
-            (!error ? (
-              <Navigation.Menu.Search placeholder={placeholder} />
-            ) : (
-              <Navigation.Menu.Search placeholder={placeholder} />
-            ))}
+          {activeTab === 'Dashboard' && (
+            <Navigation.Menu.Search placeholder={placeholder} />
+          )}
           <Navigation.Menu.Tabs
             activeTab={activeTab}
             handleActiveTab={handleActiveTab}

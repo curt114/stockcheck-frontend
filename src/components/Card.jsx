@@ -3,9 +3,18 @@
 // DATE: 11/21/2023
 // =======================================================
 
-import { createContext, useContext } from 'react';
-import { WebsocketContext } from '../context/WebsocketContext';
+import { createContext, useContext, useRef } from 'react';
 import { StockTradesContext } from '../context/StockTradesContext';
+import { StockWatchContext } from '../context/StockWatchContext';
+
+function comparePrices(prevPrice, currPrice, isUp) {
+  const previousPrice = parseInt(prevPrice * 100);
+  const currentPrice = parseInt(currPrice * 100);
+
+  if (currentPrice > previousPrice) return true;
+  if (currentPrice < previousPrice) return false;
+  return isUp;
+}
 
 // Parent Context
 const CardContext = createContext();
@@ -13,7 +22,33 @@ const CardContext = createContext();
 // =========================================================
 // STOCK CARD PARENT COMPONENT
 // =========================================================
-function Card({ stock, children }) {
+function Card({ stockWatch, timestamp, children }) {
+  const { stocks } = useContext(StockTradesContext);
+  const isUpRef = useRef(true);
+  const previousPriceRef = useRef(0.0);
+  const currentPriceRef = useRef(0.0);
+
+  currentPriceRef.current = stocks[stockWatch]
+    ? parseFloat(stocks[stockWatch].price)
+    : 0.0;
+
+  isUpRef.current = comparePrices(
+    previousPriceRef.current,
+    currentPriceRef.current,
+    isUpRef.current,
+  );
+
+  const stock = {
+    symbol: stockWatch,
+    price: currentPriceRef.current,
+    timestamp: stocks[stockWatch] ? stocks[stockWatch].timestamp : timestamp,
+    isActive: true,
+    isUp: isUpRef.current,
+    received: stocks[stockWatch] ? true : false,
+  };
+
+  previousPriceRef.current = currentPriceRef.current;
+
   let styles = 'mb-3 rounded bg-slate-600 text-slate-100';
 
   if (stock.received && stock.isUp)
@@ -69,10 +104,9 @@ function StockArrow() {
 // =========================================================
 // STOCK CARD TIMESTAMP CHILD COMPONENT
 // =========================================================
-function TimeStamp() {
+function Timestamp() {
   const { stock } = useContext(CardContext);
-
-  const date = new Date(stock.timeStamp);
+  const date = new Date(stock.timestamp);
 
   const locale = 'en-US';
 
@@ -86,8 +120,8 @@ function TimeStamp() {
     timeZoneName: 'short',
   };
 
-  const timeStamp = new Intl.DateTimeFormat(locale, options).format(date);
-  const [formattedDate, formattedTime] = timeStamp
+  const timestamp = new Intl.DateTimeFormat(locale, options).format(date);
+  const [formattedDate, formattedTime] = timestamp
     .split('at')
     .map((item) => item.trim());
 
@@ -104,18 +138,10 @@ function TimeStamp() {
 // =========================================================
 function Close() {
   const { stock } = useContext(CardContext);
-  const { stocksRef, socketRef } = useContext(WebsocketContext);
-  const { setStocks } = useContext(StockTradesContext);
+  const { dispatch } = useContext(StockWatchContext);
 
   function handleCloseStock() {
-    stocksRef.current.map((item) => {
-      if (item.symbol === stock.symbol) item.isActive = false;
-    });
-    setStocks([...stocksRef.current]);
-
-    socketRef.current.send(
-      JSON.stringify({ type: 'unsubscribe', symbol: stock.symbol }),
-    );
+    dispatch({ type: 'STOCK_DELETE', payload: stock.symbol });
   }
 
   return (
@@ -125,7 +151,7 @@ function Close() {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className="h-6 w-6 justify-self-end"
+      className="h-6 w-6 cursor-pointer justify-self-end"
       onClick={handleCloseStock}
     >
       <path
@@ -162,7 +188,7 @@ function Body() {
 // =========================================================
 Card.Header = Header;
 Card.StockArrow = StockArrow;
-Card.TimeStamp = TimeStamp;
+Card.Timestamp = Timestamp;
 Card.Close = Close;
 Card.Underline = Underline;
 Card.Body = Body;
