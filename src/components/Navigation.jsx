@@ -136,13 +136,16 @@ function Search({ placeholder }) {
   const maxIterations = 100;
 
   const fetchData = async (symbol) => {
-    const response = await fetch(`http://24.1.70.197:80/api/v1/stocks/watch`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `http://stockcheck.duckdns.org/api/v1/stocks/watch`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symbol: symbol }),
       },
-      body: JSON.stringify({ symbol: symbol }),
-    });
+    );
     if (!response.ok) throw new Error('Cannot post stock data');
     const result = await response.json();
     console.log(result);
