@@ -22,7 +22,7 @@ function StockTradesProvider({ children }) {
   useEffect(() => {
     const timer = window.setInterval(() => {
       const fetchData = async () => {
-        const response = await fetch(`http://24.1.70.197:80/api/v1/stocks/`);
+        const response = await fetch(`/api/stocks/`);
         if (!response.ok) {
           throw new Error('Cannot fetch stock data');
         } else {
