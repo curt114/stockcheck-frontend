@@ -136,7 +136,7 @@ function Search({ placeholder }) {
   const maxIterations = 100;
 
   const fetchData = async (symbol) => {
-    const response = await fetch(`/api/stocks/watch`, {
+    const response = await fetch(`http://24.1.70.197:80/api/v1/stocks/watch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
