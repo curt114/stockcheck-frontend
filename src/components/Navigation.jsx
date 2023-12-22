@@ -204,7 +204,7 @@ function Search({ placeholder }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('/api/stocks/us');
+      const response = await fetch('http://24.1.70.197:80/api/v1/stocks/us');
       if (!response.ok) throw new Error('Cannot fetch stock data');
       const result = await response.json();
       if (result) stockListRef.current = result;
