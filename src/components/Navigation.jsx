@@ -137,7 +137,7 @@ function Search({ placeholder }) {
 
   const fetchData = async (symbol) => {
     const response = await fetch(
-      `http://stockcheck.duckdns.org/api/v1/stocks/watch`,
+      `https://stockcheck.duckdns.org/api/v1/stocks/watch`,
       {
         method: 'POST',
         headers: {

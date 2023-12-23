@@ -23,7 +23,7 @@ function StockTradesProvider({ children }) {
     const timer = window.setInterval(() => {
       const fetchData = async () => {
         const response = await fetch(
-          `http://stockcheck.duckdns.org/api/v1/stocks`,
+          `https://stockcheck.duckdns.org/api/v1/stocks`,
         );
         if (!response.ok) {
           throw new Error('Cannot fetch stock data');
