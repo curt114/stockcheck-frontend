@@ -24,8 +24,6 @@ export default function RootLayout() {
     categories.length > 0 ? categories[categories.length - 1].name : '',
   );
 
-  const placeholder = 'Stock Search...';
-
   function handleActiveTab(name) {
     setActiveTab(name);
   }
@@ -38,9 +36,7 @@ export default function RootLayout() {
         </Navigation.Logo>
         <Navigation.ToggleMenuIcon />
         <Navigation.Menu>
-          {activeTab === 'Dashboard' && (
-            <Navigation.Menu.Search placeholder={placeholder} />
-          )}
+          {activeTab === 'Dashboard' && <Navigation.Menu.Search />}
           <Navigation.Menu.Tabs
             activeTab={activeTab}
             handleActiveTab={handleActiveTab}

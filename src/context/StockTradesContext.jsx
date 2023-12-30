@@ -5,6 +5,7 @@
 
 import { createContext, useEffect, useReducer } from 'react';
 
+// stocks state event handlers
 const reducer = (state, action) => {
   switch (action.type) {
     case 'STOCKS_UPDATE':
@@ -19,12 +20,11 @@ const StockTradesContext = createContext();
 function StockTradesProvider({ children }) {
   const [stocks, dispatch] = useReducer(reducer, {});
 
+  // Retrieve the updated stock trades data from the node.js server
   useEffect(() => {
     const timer = window.setInterval(() => {
       const fetchData = async () => {
-        const response = await fetch(
-          `https://stockcheck.duckdns.org/api/v1/stocks`,
-        );
+        const response = await fetch(`/api/stocks`);
         if (!response.ok) {
           throw new Error('Cannot fetch stock data');
         } else {

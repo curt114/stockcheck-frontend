@@ -1,7 +1,13 @@
+// =======================================================
+// NAME: CURTIS LEBENSORGER
+// DATE: 11/21/2023
+// =======================================================
+
 import { createContext, useReducer } from 'react';
 
 const StockWatchContext = createContext();
 
+// stocksWatch state event handlers
 const reducer = (state, action) => {
   switch (action.type) {
     case 'STOCK_DELETE':
@@ -13,6 +19,7 @@ const reducer = (state, action) => {
   }
 };
 
+// Starting stocks the users will be able to monitor
 const initialState = [
   'BINANCE:BTCUSDT',
   'NVDA',

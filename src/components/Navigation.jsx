@@ -125,7 +125,10 @@ function Menu({ children }) {
 // SEARCH MENU CHILD COMPONENT
 // =========================================================
 
-function Search({ placeholder }) {
+function Search() {
+  const [placeholder, setPlaceholder] = useState('Stock Search...');
+  const [toggleData, setToggleData] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [list, setList] = useState([]);
   const [showMenu, setShowMenu] = useState(false);
   const { stocksWatch, dispatch } = useContext(StockWatchContext);
@@ -136,24 +139,19 @@ function Search({ placeholder }) {
   const maxIterations = 100;
 
   const fetchData = async (symbol) => {
-    const response = await fetch(
-      `https://stockcheck.duckdns.org/api/v1/stocks/watch`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ symbol: symbol }),
+    const response = await fetch(`/api/stocks/watch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({ symbol: symbol }),
+    });
     if (!response.ok) throw new Error('Cannot post stock data');
-    const result = await response.json();
-    console.log(result);
+    else dispatch({ type: 'STOCK_ADD', payload: symbol });
   };
 
   const handleStockClicked = (symbol) => {
     const found = stocksWatch.find((stock) => stock === symbol);
-    dispatch({ type: 'STOCK_ADD', payload: symbol });
     if (!found) {
       fetchData(symbol);
     }
@@ -202,20 +200,25 @@ function Search({ placeholder }) {
   // Heroicons
   const searchIcon =
     'M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z';
-  // const refreshIcon =
-  //   'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99';
+  const refreshIcon =
+    'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99';
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(
-        'https://stockcheck.duckdns.org/api/v1/stocks/us',
-      );
-      if (!response.ok) throw new Error('Cannot fetch stock data');
+      const response = await fetch('/api/stocks/us');
+      if (!response.ok) {
+        setIsError(true);
+        setPlaceholder('Cannot retrieve stock data.');
+      }
       const result = await response.json();
-      if (result) stockListRef.current = result;
+      if (result) {
+        stockListRef.current = result;
+        setIsError(false);
+        setPlaceholder('Stock Search...');
+      }
     };
     fetchData();
-  }, []);
+  }, [toggleData]);
 
   useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -228,21 +231,48 @@ function Search({ placeholder }) {
   return (
     <div className="relative flex flex-col">
       <div className="flex rounded-full border-2 border-gray-800 text-gray-500 md:col-start-1 md:col-end-2 md:w-10/12 md:justify-self-start lg:w-full">
-        <label
-          htmlFor="mySearch"
-          className={'rounded-l-full bg-white px-2 py-2'}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-6 w-6"
+        {isError ? (
+          <button
+            htmlFor="mySearch"
+            onClick={() => setToggleData(!toggleData)}
+            className={'rounded-l-full bg-slate-300 px-2 py-2'}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d={searchIcon} />
-          </svg>
-        </label>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d={refreshIcon}
+              />
+            </svg>
+          </button>
+        ) : (
+          <label
+            htmlFor="mySearch"
+            className={'rounded-l-full bg-white px-2 py-2'}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d={searchIcon}
+              />
+            </svg>
+          </label>
+        )}
 
         <input
           type="text"
@@ -251,6 +281,7 @@ function Search({ placeholder }) {
           onFocus={handleInputOnFocus}
           onBlur={handleInputOnBlur}
           onChange={handleInputChange}
+          disabled={isError ? true : false}
           ref={inputRef}
           autoComplete="off"
           className="w-full rounded-r-full py-2 pl-2 transition-all duration-300 placeholder:text-inherit focus:outline-none disabled:bg-white"
