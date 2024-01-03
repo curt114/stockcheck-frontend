@@ -33,7 +33,7 @@ function StockTradesProvider({ children }) {
         }
       };
       fetchData();
-    }, 1000);
+    }, 5000);
 
     return () => {
       window.clearInterval(timer);
